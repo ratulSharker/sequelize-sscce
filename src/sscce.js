@@ -44,22 +44,45 @@ module.exports = async function(createSequelizeInstance, log) {
     // shortest possible code to show your issue. The shorter your
     // code, the more likely it is for you to get a fast response
     // on your issue.
-    const User = sequelize.define('User', {
-        name: DataTypes.TEXT,
-        pass: DataTypes.TEXT
-    }, {
-        hooks: {
-            afterCreate: (user, options) => {
-                asynchronusReading()
-            }
+    const Category = sequelize.define('Category', {
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            required: true
+        },
+        userId: {
+            type: Sequelize.INTEGER,
+            allowNull: false
         }
+    },
+    {
+        freezeTableName: true,
+        paranoid: true
     });
-    const Foo = sequelize.define('Foo', {
-        name: DataTypes.TEXT,
-        pass: DataTypes.TEXT
+
+    const User = sequelize.define('User', {
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            required: true
+        },
+    },
+    {
+        freezeTableName: true,
+        paranoid: true
     });
-    User.belongsTo(Foo);
-    Foo.hasOne(User);
+
+    Category.belongsTo(User, {
+        foreignKey: {
+            name: "userId"
+        }
+    })
+
+    User.hasMany(Category, {
+        foreignKey: {
+            name: "userId"
+        }
+    })
 
     // Since you defined some models above, don't forget to sync them.
     // Using the `{ force: true }` option is not necessary because the
@@ -67,34 +90,39 @@ module.exports = async function(createSequelizeInstance, log) {
     // executed after pushing to GitHub (by Travis CI and AppVeyor).
     await sequelize.sync();
 
-    function readFoo() {
-        return Foo.findOne({
-            where: {
-                name: "sharker"
+
+    await User.create({
+        name: "Ratul"
+    })
+
+    await Category.create({
+        name: "Developer",
+        userId: 1
+    })
+
+    await Category.create({
+        name: "Mobile developer",
+        userId: 1
+    })
+
+    const categories = await Category.findAll({
+        include: [
+            {
+                model: User
             }
-        })
-    }
+        ]
+    })
 
-    async function asynchronusReading() {
-        try {
-            readFoo()
-            .then(foo => {
-                console.log("Asynchronus reading completed")
-            })
-        } catch(err) {
-            console.log(err)
-        }
-    }
+    const users = await User.findAll({
+        include: [
+            {
+                model: Category
+            }
+        ]
+    })
 
-    // Call your stuff to show the problem...
-    try {
-        await User.create({
-            name: "Ratul",
-            pass: "secret"
-        })
-        console.log("Creation completed")
-    } catch(err) {
-        console.log(err)
-    }
-    
+    console.log(JSON.parse(JSON.stringify(categories)))
+    console.log("-----------------------------------")
+    console.log(JSON.parse(JSON.stringify(users)))
+
 };
