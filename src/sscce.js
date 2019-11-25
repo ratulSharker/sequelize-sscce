@@ -79,6 +79,10 @@ module.exports = async function(createSequelizeInstance, log) {
         name: "Developer"
     })
 
+    await Role.create({
+        name: "Contractor"
+    })
+
     await UserRole.create({
         UserId: 1,
         RoleId: 1
@@ -86,15 +90,16 @@ module.exports = async function(createSequelizeInstance, log) {
 
 
 
-    const users = await User.findAll({
+    const roles = await Role.findAll({
         include: [
             {
-                model: Role,
-                through: UserRole
+                model: User,
+                through: UserRole,
+                required: true
             }
         ]
     })
 
-    console.log(JSON.parse(JSON.stringify(users)))
+    console.log(JSON.parse(JSON.stringify(roles)))
 
 };
