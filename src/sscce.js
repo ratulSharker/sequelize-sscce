@@ -44,20 +44,7 @@ module.exports = async function(createSequelizeInstance, log) {
     // shortest possible code to show your issue. The shorter your
     // code, the more likely it is for you to get a fast response
     // on your issue.
-    const Category = sequelize.define('Category', {
-        name: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            required: true
-        },
-        userId: {
-            type: Sequelize.INTEGER,
-            allowNull: false
-        }
-    },
-    {
-        freezeTableName: true,
-        paranoid: true
+    const UserRole = sequelize.define('UserRole', {
     });
 
     const User = sequelize.define('User', {
@@ -66,23 +53,17 @@ module.exports = async function(createSequelizeInstance, log) {
             allowNull: false,
             required: true
         },
-    },
-    {
-        freezeTableName: true,
-        paranoid: true
     });
 
-    Category.belongsTo(User, {
-        foreignKey: {
-            name: "userId"
+    const Role = sequelize.define("Roles", {
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     })
 
-    User.hasMany(Category, {
-        foreignKey: {
-            name: "userId"
-        }
-    })
+    Role.belongsToMany(User, { through: UserRole })
+    User.belongsToMany(Role, { through: UserRole })
 
     // Since you defined some models above, don't forget to sync them.
     // Using the `{ force: true }` option is not necessary because the
@@ -90,39 +71,30 @@ module.exports = async function(createSequelizeInstance, log) {
     // executed after pushing to GitHub (by Travis CI and AppVeyor).
     await sequelize.sync();
 
-
     await User.create({
         name: "Ratul"
     })
 
-    await Category.create({
-        name: "Developer",
-        userId: 1
+    await Role.create({
+        name: "Developer"
     })
 
-    await Category.create({
-        name: "Mobile developer",
-        userId: 1
+    await UserRole.create({
+        UserId: 1,
+        RoleId: 1
     })
 
-    const categories = await Category.findAll({
-        include: [
-            {
-                model: User
-            }
-        ]
-    })
+
 
     const users = await User.findAll({
         include: [
             {
-                model: Category
+                model: Role,
+                through: UserRole
             }
         ]
     })
 
-    console.log(JSON.parse(JSON.stringify(categories)))
-    console.log("-----------------------------------")
     console.log(JSON.parse(JSON.stringify(users)))
 
 };
